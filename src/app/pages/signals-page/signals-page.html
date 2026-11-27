@@ -1,1 +1,92 @@
-<p>signals-page works!</p>
+<h1>Редактор пользователя на сигналах</h1>
+@if (listState() === 'loading') {
+  <p role="status">Загружаем пользователей…</p>
+} @else if (listState() === 'error') {
+  <p role="alert">Не удалось загрузить список пользователей.</p>
+  <button mat-button (click)="load()">Повторить загрузку</button>
+} @else if (selected(); as user) {
+  <mat-form-field>
+    <mat-label>Пользователь</mat-label>
+    <select
+      matNativeControl
+      #picker
+      [value]="user.id"
+      [disabled]="saving() || form().dirty()"
+      (change)="edit(users()[picker.selectedIndex])"
+    >
+      @for (item of users(); track item.id) {
+        <option [value]="item.id">{{ item.name }}</option>
+      }
+    </select>
+  </mat-form-field>
+  @if (form().dirty()) {
+    <p>Чтобы сменить пользователя, сохраните или отмените изменения.</p>
+  }
+  <form novalidate (submit)="$event.preventDefault(); save()">
+    <fieldset [disabled]="saving()">
+      <legend>Профиль</legend>
+      <mat-form-field
+        ><mat-label>Имя</mat-label><input matInput [formField]="form.name" />
+        <mat-error>Введите имя.</mat-error></mat-form-field
+      >
+      <mat-form-field
+        ><mat-label>Email</mat-label><input matInput type="email" [formField]="form.email" />
+        <mat-error>Введите корректный email.</mat-error></mat-form-field
+      >
+      <mat-form-field
+        ><mat-label>Роль</mat-label
+        ><select matNativeControl [formField]="form.role">
+          <option value="employee">Сотрудник</option>
+          <option value="contractor">Подрядчик</option>
+          <option value="admin">Администратор</option>
+        </select></mat-form-field
+      >
+      <mat-form-field
+        ><mat-label>Компания</mat-label><input matInput [formField]="form.company" />
+        <mat-error>Для подрядчика укажите компанию.</mat-error></mat-form-field
+      >
+      <fieldset>
+        <legend>Адрес</legend>
+        <mat-form-field
+          ><mat-label>Город</mat-label><input matInput [formField]="form.address.city"
+        /></mat-form-field>
+        <mat-form-field
+          ><mat-label>Улица</mat-label><input matInput [formField]="form.address.street"
+        /></mat-form-field>
+      </fieldset>
+      <fieldset>
+        <legend>Телефоны</legend>
+        @for (phone of form.phones; track phone; let i = $index) {
+          <div class="phone">
+            <mat-form-field
+              ><mat-label>Телефон {{ i + 1 }}</mat-label>
+              <input matInput type="tel" [formField]="phone" /><mat-error
+                >Введите номер или удалите поле.</mat-error
+              >
+            </mat-form-field>
+            <button
+              type="button"
+              mat-button
+              (click)="removePhone(i)"
+              [attr.aria-label]="'Удалить телефон ' + (i + 1)"
+            >
+              Удалить
+            </button>
+          </div>
+        }
+        <button type="button" mat-button (click)="addPhone()">Добавить телефон</button>
+      </fieldset>
+      <div class="actions">
+        <button mat-flat-button type="submit" [disabled]="saving() || !form().dirty()">
+          {{ saving() ? 'Сохраняем…' : 'Сохранить' }}
+        </button>
+        <button mat-button type="button" [disabled]="!form().dirty()" (click)="edit(user)">
+          Отменить изменения
+        </button>
+      </div>
+    </fieldset>
+  </form>
+  <p role="status">{{ message() }}</p>
+} @else {
+  <p>В базе пока нет пользователей.</p>
+}
